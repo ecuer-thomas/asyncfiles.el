@@ -39,12 +39,47 @@
      (lambda (&optional filename)
        (message "[background] file saved : %s" filename))))
 
+
+;; background-load-file
+;; Open a file in a different process,
+;; then create a buffer and fill it with loaded content.
+
+
+(defun background-load-file (&optional args)
+  (interactive "p")
+  (setq filename (read-file-name "file : "))
+
+  (async-start
+   `(lambda ()
+      ,(async-inject-variables "filename" )
+
+      ;; open file
+      (find-file filename)
+      (setq local-buffer-content (buffer-substring-no-properties (point-min) (point-max)))
+      (kill-buffer (buffer-name))
+      local-buffer-content)
+
+
+
+   (lambda (content)
+     (get-buffer-create filename)
+
+     ;; write content
+     (with-current-buffer filename
+       (insert content))
+     (switch-to-buffer filename)
+
+     ;; "link" buffer to file's path
+     (set-visited-file-name filename)
+     (message "[foreground] File loaded %s." filename))))
+
+
+
+(global-set-key (kbd "M-s M-f")'background-load-file)
+(global-set-key (kbd "M-s M-s")'background-save-buffer)
+
 ;; Overwrite C-x-s standard shortcut
-;; dangerous - as it does not ask for confirmation
 
 ;(substitute-key-definition
 ; 'save-buffer 'background-save-buffer (current-global-map))
-
-
-(global-set-key (kbd "M-s M-s")'background-save-buffer)
 
