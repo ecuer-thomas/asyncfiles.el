@@ -19,3 +19,10 @@ Not really tested with _trampmode_, but at first sight, it seems to work.
 When it's ready, switch current active buffer to this one.
 
 
+### Bindings
+
+Current bindings:
+
+* `M-s M-f` : background-load-file
+* `M-s M-s` : background-save-buffer
+
