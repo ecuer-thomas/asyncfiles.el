@@ -1,6 +1,8 @@
 ;; Background save-buffer
 ;;
 ;; 28/05/15
+;; (setq debug-on-error t)
+;;
 
 
 ;; background-save-buffer
@@ -14,17 +16,15 @@
 ;; therefore, it's could be dangerous with versionning systems.
 
 (defun background-save-buffer (&optional arg)
-  (setq this-buffer (buffer-substring-no-properties (point-min) (point-max)))
-  (setq this-buffer-name (buffer-name))
-
   (interactive "p")
+
+  (let ((this-buffer (buffer-substring-no-properties (point-min) (point-max)))
+    (this-buffer-name (buffer-file-name)))
 
   (async-start
    `(lambda ()
-      ,(async-inject-variables "this-buffer" )
-      ,(async-inject-variables "this-buffer-name" )
-
-
+      ,(async-inject-variables "this-buffer")
+      ,(async-inject-variables "this-buffer-name")
 
       (defun ask-user-about-lock (&option args)
 	nil)
@@ -37,13 +37,12 @@
       this-buffer-name)
 
      (lambda (&optional filename)
-       (message "[background] file saved : %s" filename))))
+       (message "[background] file saved : %s" filename)))))
 
 
 ;; background-load-file
 ;; Open a file in a different process,
 ;; then create a buffer and fill it with loaded content.
-
 
 (defun background-load-file (&optional args)
   (interactive "p")
@@ -56,9 +55,12 @@
       ;; open file
       (find-file filename)
       (setq local-buffer-content (buffer-substring-no-properties (point-min) (point-max)))
-      (kill-buffer (buffer-name))
-      local-buffer-content)
 
+      ;; kill "remote" buffer
+      (kill-buffer (buffer-name))
+
+      ;; return its content
+      local-buffer-content)
 
 
    (lambda (content)
@@ -79,7 +81,6 @@
 (global-set-key (kbd "M-s M-s")'background-save-buffer)
 
 ;; Overwrite C-x-s standard shortcut
-
 ;(substitute-key-definition
 ; 'save-buffer 'background-save-buffer (current-global-map))
 
